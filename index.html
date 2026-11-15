@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RVL CrossHub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col font-sans antialiased">
+
+  <!-- Header -->
+  <header class="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur sticky top-0 z-20">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="crosshair" class="w-5 h-5 text-zinc-100"></i>
+          <h1 class="text-lg font-bold tracking-tight">RVL CrossHub</h1>
+          <span class="text-xs text-zinc-500 border-l border-zinc-800 pl-2.5">criado por um cara aleatorio</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Status da Database -->
+        <div id="db-status" class="flex items-center gap-1.5 text-xs text-zinc-400 bg-zinc-900 border border-zinc-800 px-2.5 py-1.5 rounded-md">
+          <span id="db-dot" class="w-2 h-2 rounded-full bg-yellow-500"></span>
+          <span id="db-text">Conectando...</span>
+        </div>
+
+        <button id="open-modal-btn" class="bg-zinc-100 hover:bg-white text-zinc-950 text-sm font-medium px-3.5 py-1.5 rounded-md flex items-center gap-1.5 transition">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          Postar Mira
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-4xl w-full mx-auto px-4 py-6 flex-1 space-y-6">
+    
+    <!-- Busca e Filtros de Armas -->
+    <div class="space-y-3">
+      <div class="relative">
+        <i data-lucide="search" class="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+        <input 
+          id="search-input" 
+          type="text" 
+          placeholder="Buscar por título, autor ou trecho do código..." 
+          class="w-full bg-zinc-900 border border-zinc-800 rounded-md pl-9 pr-4 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-600"
+        />
+      </div>
+
+      <div id="weapon-filters" class="flex flex-wrap gap-1.5">
+        <button data-weapon="Todas" class="weapon-btn active bg-zinc-100 text-zinc-950 text-xs font-medium px-3 py-1.5 rounded-md transition">Todas</button>
+        <button data-weapon="Assault Rifle" class="weapon-btn bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800 text-xs font-medium px-3 py-1.5 rounded-md transition">Assault Rifle</button>
+        <button data-weapon="Sniper" class="weapon-btn bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800 text-xs font-medium px-3 py-1.5 rounded-md transition">Sniper</button>
+        <button data-weapon="Burst Rifle" class="weapon-btn bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800 text-xs font-medium px-3 py-1.5 rounded-md transition">Burst Rifle</button>
+        <button data-weapon="Handgun" class="weapon-btn bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800 text-xs font-medium px-3 py-1.5 rounded-md transition">Handgun</button>
+        <button data-weapon="Revolver" class="weapon-btn bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800 text-xs font-medium px-3 py-1.5 rounded-md transition">Revolver</button>
+        <button data-weapon="Bow" class="weapon-btn bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800 text-xs font-medium px-3 py-1.5 rounded-md transition">Bow</button>
+        <button data-weapon="Shotgun" class="weapon-btn bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800 text-xs font-medium px-3 py-1.5 rounded-md transition">Shotgun</button>
+        <button data-weapon="RPG" class="weapon-btn bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800 text-xs font-medium px-3 py-1.5 rounded-md transition">RPG</button>
+        <button data-weapon="Katana / Melee" class="weapon-btn bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800 text-xs font-medium px-3 py-1.5 rounded-md transition">Katana / Melee</button>
+        <button data-weapon="Outras" class="weapon-btn bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800 text-xs font-medium px-3 py-1.5 rounded-md transition">Outras</button>
+      </div>
+    </div>
+
+    <!-- Feed de Miras -->
+    <div id="posts-container" class="space-y-4">
+      <div class="text-center py-12 text-zinc-500 text-sm">Carregando miras do banco de dados...</div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-zinc-900 py-5 text-center text-xs text-zinc-600">
+    RVL CrossHub &mdash; criado por um cara aleatorio
+  </footer>
+
+  <!-- Modal Postar Mira -->
+  <div id="post-modal" class="fixed inset-0 bg-black/75 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-lg max-w-lg w-full p-5 space-y-4 shadow-xl">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <h2 class="text-base font-semibold">Nova Mira</h2>
+        <button id="close-modal-btn" class="text-zinc-400 hover:text-zinc-200">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="post-form" class="space-y-3.5">
+        <div>
+          <label class="block text-xs text-zinc-400 mb-1">Título da Mira *</label>
+          <input id="input-title" type="text" required placeholder="Ex: Mira ponto fino para HS" class="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-600" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-zinc-400 mb-1">Arma *</label>
+            <select id="input-weapon" class="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-600">
+              <option value="Assault Rifle">Assault Rifle</option>
+              <option value="Sniper">Sniper</option>
+              <option value="Burst Rifle">Burst Rifle</option>
+              <option value="Handgun">Handgun</option>
+              <option value="Revolver">Revolver</option>
+              <option value="Bow">Bow</option>
+              <option value="Shotgun">Shotgun</option>
+              <option value="RPG">RPG</option>
+              <option value="Katana / Melee">Katana / Melee</option>
+              <option value="Outras">Outras</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-zinc-400 mb-1">Seu Nick (opcional)</label>
+            <input id="input-author" type="text" placeholder="Anônimo" class="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-600" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs text-zinc-400 mb-1">Código da Mira (RAW - sem formatação) *</label>
+          <textarea id="input-code" rows="5" required placeholder="Cole o código exatamente como copiou do jogo..." class="w-full bg-zinc-950 border border-zinc-800 rounded-md p-3 text-xs font-mono text-zinc-200 focus:outline-none focus:border-zinc-600 whitespace-pre"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" id="cancel-modal-btn" class="px-3.5 py-1.5 text-sm text-zinc-400 hover:text-zinc-200">Cancelar</button>
+          <button type="submit" id="submit-post-btn" class="bg-zinc-100 hover:bg-white text-zinc-950 text-sm font-medium px-4 py-1.5 rounded-md transition">Publicar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Configuração do seu projeto Firebase (rvlcrosshub)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfyxCAlAMVWW5hbSKyx1dNflZI_A5lgPQ",
+      authDomain: "rvlcrosshub.firebaseapp.com",
+      projectId: "rvlcrosshub",
+      storageBucket: "rvlcrosshub.firebasestorage.app",
+      messagingSenderId: "337415666773",
+      appId: "1:337415666773:web:4b50c0d9d614035d65e8dc",
+      measurementId: "G-841KS6ZJ5B"
+    };
+
+    lucide.createIcons();
+
+    const dbDot = document.getElementById("db-dot");
+    const dbText = document.getElementById("db-text");
+    const postsContainer = document.getElementById("posts-container");
+    const searchInput = document.getElementById("search-input");
+    const weaponBtns = document.querySelectorAll(".weapon-btn");
+
+    let currentUser = null;
+    let allPosts = [];
+    let selectedWeapon = "Todas";
+    let searchQuery = "";
+
+    function setStatus(state, text) {
+      dbText.textContent = text;
+      dbDot.className = "w-2 h-2 rounded-full " + (
+        state === "ok" ? "bg-emerald-500" :
+        state === "err" ? "bg-red-500" : "bg-yellow-500"
+      );
+    }
+
+    try {
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      const crosshairsCol = collection(db, "rvl_crosshairs");
+
+      // Autenticação Anônima
+      signInAnonymously(auth).catch((err) => {
+        console.error("Erro auth:", err);
+        setStatus("err", "Erro no Login Anônimo");
+      });
+
+      onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        if (user) {
+          setStatus("ok", "Online");
+        }
+      });
+
+      // Escuta em tempo real do Firestore
+      onSnapshot(crosshairsCol, (snapshot) => {
+        setStatus("ok", "Online");
+        allPosts = snapshot.docs.map(docSnap => ({
+          id: docSnap.id,
+          ...docSnap.data()
+        }));
+
+        // Ordena do mais recente para o mais antigo no cliente
+        allPosts.sort((a, b) => {
+          const tA = a.createdAt?.seconds || 0;
+          const tB = b.createdAt?.seconds || 0;
+          return tB - tA;
+        });
+
+        renderPosts();
+      }, (error) => {
+        console.error("Erro Firestore:", error);
+        setStatus("err", "Erro de Permissão/DB");
+        postsContainer.innerHTML = `
+          <div class="border border-red-900/50 bg-red-950/20 rounded-lg p-5 text-center text-xs text-red-300">
+            Erro ao ler banco de dados. Verifique se o <b>Cloud Firestore</b> está ativado e com as regras liberadas.
+          </div>
+        `;
+      });
+
+      // Publicar nova mira
+      document.getElementById("post-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!currentUser) return alert("Aguarde a conexão com o banco de dados.");
+
+        const submitBtn = document.getElementById("submit-post-btn");
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Salvando...";
+
+        try {
+          const title = document.getElementById("input-title").value.trim();
+          const weapon = document.getElementById("input-weapon").value;
+          const author = document.getElementById("input-author").value.trim() || "Anônimo";
+          const rawCode = document.getElementById("input-code").value;
+
+          await addDoc(crosshairsCol, {
+            title,
+            weapon,
+            author,
+            code: rawCode,
+            uid: currentUser.uid,
+            likes: [],
+            createdAt: serverTimestamp()
+          });
+
+          document.getElementById("post-form").reset();
+          toggleModal(false);
+        } catch (err) {
+          console.error(err);
+          alert("Erro ao salvar no banco de dados: " + err.message);
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Publicar";
+        }
+      });
+
+      // Ações nos cards (Copiar, Curtir, Excluir)
+      postsContainer.addEventListener("click", async (e) => {
+        const copyBtn = e.target.closest(".copy-btn");
+        if (copyBtn) {
+          const post = allPosts.find(p => p.id === copyBtn.dataset.id);
+          if (post) {
+            await navigator.clipboard.writeText(post.code);
+            const originalHTML = copyBtn.innerHTML;
+            copyBtn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i><span class="text-emerald-400">Copiado!</span>`;
+            lucide.createIcons();
+            setTimeout(() => {
+              copyBtn.innerHTML = originalHTML;
+              lucide.createIcons();
+            }, 1800);
+          }
+        }
+
+        const likeBtn = e.target.closest(".like-btn");
+        if (likeBtn && currentUser) {
+          const id = likeBtn.dataset.id;
+          const post = allPosts.find(p => p.id === id);
+          if (!post) return;
+          const postRef = doc(db, "rvl_crosshairs", id);
+          const hasLiked = (post.likes || []).includes(currentUser.uid);
+          await updateDoc(postRef, {
+            likes: hasLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
+          });
+        }
+
+        const delBtn = e.target.closest(".delete-btn");
+        if (delBtn && currentUser) {
+          if (confirm("Apagar esta mira permanentemente?")) {
+            await deleteDoc(doc(db, "rvl_crosshairs", delBtn.dataset.id));
+          }
+        }
+      });
+
+    } catch (e) {
+      console.error(e);
+      setStatus("err", "Erro na inicialização");
+    }
+
+    // Renderização do Feed
+    function renderPosts() {
+      const filtered = allPosts.filter(post => {
+        const matchWeapon = selectedWeapon === "Todas" || post.weapon === selectedWeapon;
+        const q = searchQuery.toLowerCase();
+        const matchSearch = !q || 
+          (post.title || "").toLowerCase().includes(q) ||
+          (post.author || "").toLowerCase().includes(q) ||
+          (post.code || "").toLowerCase().includes(q);
+        return matchWeapon && matchSearch;
+      });
+
+      if (filtered.length === 0) {
+        postsContainer.innerHTML = `
+          <div class="border border-zinc-800/80 bg-zinc-900/30 rounded-lg py-12 text-center text-sm text-zinc-500">
+            Nenhuma mira encontrada. Clique em <b>Postar Mira</b> para adicionar a primeira!
+          </div>
+        `;
+        return;
+      }
+
+      postsContainer.innerHTML = filtered.map(post => {
+        const likesCount = (post.likes || []).length;
+        const isLiked = currentUser && (post.likes || []).includes(currentUser.uid);
+        const isOwner = currentUser && post.uid === currentUser.uid;
+
+        return `
+          <article class="bg-zinc-900/60 border border-zinc-800 rounded-lg p-4 space-y-3">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="font-semibold text-zinc-100 text-sm">${escapeHTML(post.title)}</h3>
+                  <span class="text-[11px] bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded border border-zinc-700">${escapeHTML(post.weapon)}</span>
+                </div>
+                <p class="text-xs text-zinc-500 mt-0.5">por ${escapeHTML(post.author)}</p>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button data-id="${post.id}" class="like-btn flex items-center gap-1 text-xs px-2.5 py-1 rounded border ${isLiked ? 'bg-zinc-800 border-zinc-600 text-zinc-100' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200'} transition">
+                  <i data-lucide="heart" class="w-3.5 h-3.5 ${isLiked ? 'fill-zinc-100' : ''}"></i>
+                  <span>${likesCount}</span>
+                </button>
+                ${isOwner ? `
+                  <button data-id="${post.id}" title="Apagar post" class="delete-btn text-zinc-500 hover:text-red-400 p-1 transition">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+
+            <!-- Bloco RAW -->
+            <div class="bg-zinc-950 border border-zinc-800 rounded-md overflow-hidden">
+              <div class="flex items-center justify-between px-3 py-1.5 border-b border-zinc-800/80 bg-zinc-900/40">
+                <span class="text-[11px] font-mono text-zinc-500 uppercase">RAW</span>
+                <button data-id="${post.id}" class="copy-btn flex items-center gap-1.5 text-xs text-zinc-300 hover:text-white bg-zinc-800 hover:bg-zinc-700 px-2.5 py-1 rounded transition">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  <span>Copiar código</span>
+                </button>
+              </div>
+              <pre class="p-3 text-xs font-mono text-zinc-300 whitespace-pre overflow-x-auto select-all">${escapeHTML(post.code)}</pre>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      lucide.createIcons();
+    }
+
+    function escapeHTML(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    // Filtros e Modal
+    searchInput.addEventListener("input", (e) => {
+      searchQuery = e.target.value;
+      renderPosts();
+    });
+
+    weaponBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        weaponBtns.forEach(b => {
+          b.className = "weapon-btn bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800 text-xs font-medium px-3 py-1.5 rounded-md transition";
+        });
+        btn.className = "weapon-btn active bg-zinc-100 text-zinc-950 text-xs font-medium px-3 py-1.5 rounded-md transition";
+        selectedWeapon = btn.dataset.weapon;
+        renderPosts();
+      });
+    });
+
+    const modal = document.getElementById("post-modal");
+    function toggleModal(show) {
+      modal.classList.toggle("hidden", !show);
+      modal.classList.toggle("flex", show);
+    }
+
+    document.getElementById("open-modal-btn").addEventListener("click", () => toggleModal(true));
+    document.getElementById("close-modal-btn").addEventListener("click", () => toggleModal(false));
+    document.getElementById("cancel-modal-btn").addEventListener("click", () => toggleModal(false));
+  </script>
+</body>
+</html>
